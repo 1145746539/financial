@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.yc.financial.dao.SelUserlistDAO">
+
+	<!-- 分页查找用户表的数据（姓名，部门编号） -->
+	<select id="selectByPag" resultType="com.yc.financial.vo.UsersVO">
+	 SELECT * FROM USERS
+	 <where>
+	 	<if test="uname!=null">
+	 		AND uname LIKE CONCAT('%', #{uname},'%')
+	 	</if>
+	 	<if test="did!=null">
+	 		AND did= #{did}
+	 	</if>
+	 </where>
+		limit #{start},#{size}
+	</select>
+	
+</mapper>
+  

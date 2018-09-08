@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.yc.financial.dao.DetailsDAO">
+
+	<!-- 分页查找明细与用户表的数据（编号，日期，用户编号） -->
+	<select id="selectByPag" resultType="com.yc.financial.vo.DetailsVO">
+	 SELECT * FROM details_sel
+	 <where>
+	 	<if test="id!=null">
+	 		id = #{id}
+	 	</if>
+	 	<if test="time!=null">
+	 		SUBSTRING(reportime,1,10) = #{time}
+	 	</if>
+	 	<if test="did==1">
+	 		account=#{account}
+	 	</if>
+	 </where>
+		limit #{start},#{size}
+	</select>
+	
+	<!-- 查找天数总数 -->
+	<select id="selectByDayCount" resultType="Integer">
+		SELECT COUNT(*) FROM details_sel
+		<where>
+			<if test="id!=null">
+		 		id = #{id}
+		 	</if>
+			<if test="time!=null">
+				SUBSTRING(reportime,1,10) = #{time}
+			</if>
+			AND state=1
+		</where>
+	</select>
+	
+	
+	<select id="selectForJournal" resultType="com.yc.financial.vo.DetailsVO">
+	 SELECT * FROM details_sel
+	 <where>
+	 	<if test="id!=null">
+	 		id = #{id}
+	 	</if>
+	 	<if test="time!=null">
+	 		SUBSTRING(reportime,1,10) = #{time}
+	 	</if>
+	 	<if test="did==1">
+	 		account=#{account}
+	 	</if>
+	 	AND state=1
+	 </where>
+		limit #{start},#{limit}
+	</select>
+	
+		<!-- 查找月份总数 -->
+	<select id="selectByMonthCount" resultType="Integer">
+		SELECT COUNT(*) as cut FROM details_sel 
+		<where>
+			<if test="time!=null">
+				SUBSTRING(reportime,1,7) = #{time}
+			</if>
+			<if test="did==1">
+				did=#{did} and account=#{account}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 审核报账总数 -->
+	<select id="CountExam" resultType="Integer">
+		SELECT COUNT(*) FROM details_sel
+		<where>
+		 ID IN(SELECT ID FROM flowmeter where DID = #{did} AND STATE = #{state})
+			<if test="time!=null">
+				AND 'SUBSTRING(reportime,1,7)' = #{time}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 通过月份查找数据 -->
+	<select id="selectByMonth" resultType="com.yc.financial.vo.DetailsVO">
+	SELECT * FROM details_sel
+	<where>
+		<if test="time!=null">
+			SUBSTRING(reportime,1,7)' = #{time}
+		</if>
+	</where>
+		limit #{start},#{limit}
+	</select>
+	
+	<select id="selectExam" resultType="com.yc.financial.vo.DetailsVO">
+		SELECT * FROM details_sel
+		<where>
+		 ID IN(SELECT ID FROM flowmeter where DID = #{did} AND STATE = #{state})
+			<if test="time!=null">
+				AND SUBSTRING(reportime,1,7) = #{time}
+			</if>
+		</where>
+		limit #{start},#{limit}
+	</select>
+	
+</mapper>
+  

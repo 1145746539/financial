@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd  
+    http://www.springframework.org/schema/context  
+     http://www.springframework.org/schema/context/spring-context.xsd 
+     http://www.springframework.org/schema/aop 
+     http://www.springframework.org/schema/aop/spring-aop.xsd
+     http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx.xsd 
+    http://www.springframework.org/schema/mvc  
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    
+    <!-- spring 配置自动扫描包 -->
+    <context:component-scan base-package="com.yc.financial">
+    </context:component-scan>
+    
+	<!-- 用于处理静态资源 -->
+	<mvc:default-servlet-handler/>
+	<!-- MVC  注解驱动   -->    
+	<mvc:annotation-driven/>
+    
+    <!-- 配置视图解析器 -->
+	<bean id="jspViewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- 数据源 -->
+	<bean id="dataSource" class=
+	"org.apache.commons.dbcp2.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://127.0.0.1/financial?useUnicode=true&amp;characterEncoding=UTF-8" />
+		<property name="username" value="root" />
+		<property name="password" value="a" />
+	</bean>
+
+	<!-- 创建mybatis会话工厂 加载配置得方法：
+	 1.直接读取mybatis配置文件（一个是数据源，一个是映射文件mapper）
+	  2.直接在bean中配置 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean> 
+
+	<!-- mapper 接口扫描bean，正确配置这个 bean 才能获取到 mybatis mapper -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.yc.financial.dao"></property>
+	</bean>
+	
+		<!-- ======================以下是 spring 事务管理的相关配置======================= -->
+	<!-- spring 事务管理器 -->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>	
+	</bean>
+	
+	<!-- spring 事务 advice（增强） 的管理者设置为transactionManager -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<!-- 所有的get开头的方法 get大部分都是查询 -->
+			<tx:method name="get*" read-only="true" />
+			<tx:method name="find*" read-only="true" />
+			<!-- 其他所有的方法 默认隔离级别 超时-1秒 rollback-for="BizException" no-rollback-for="Null" -->
+			<tx:method name="*" isolation="DEFAULT" timeout="-1" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- one of the properties available; the maximum file size in bytes -->
+		<property name="maxUploadSize" value="1000000" />
+	</bean>
+	
+	<!-- spring 事务切面配置 -->
+	<aop:config>
+		<aop:pointcut id="txA"
+			expression="execution(* com.yc.financial..service.*.*(..))" />
+		<!-- 已经写好的增强类 aop:advisor -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txA" />
+	</aop:config>
+	
+	<bean class = "org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+<property name="messageConverters">
+    <array>
+        <bean class = "org.springframework.http.converter.StringHttpMessageConverter">
+            <property name="supportedMediaTypes" value = "text/plain;charset=UTF-8" />
+        </bean>
+    </array>
+</property>
+</bean>
+	
+	
+	
+</beans>
